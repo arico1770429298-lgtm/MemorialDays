@@ -1,7 +1,12 @@
+
+# 作者的话：
+我只是个弱弱的大学生，软件也有一些些小bug，结合Reasonix-V4.1Flash+V4Pro攥写
+为什么要写这个软件呢，主要是现在很多类似的都要钱/会员什么的，所以我突发奇想，打算自己写
+有点小bug，目前我并不知道桌面的小卡片是否可以用，这不是我擅长的地方
+软件并不是完美的，不过已经尽可能排除了一些问题
+
 # MemorialDays
-
 完全离线、无广告、零运行时权限的多事件纪念日 / 倒数日 Android 应用。Kotlin + Jetpack Compose + Room + Jetpack Glance，单 module。
-
 - 包名：`com.example.memorialdays`
 - `minSdk 26`（Android 8.0），`targetSdk 36`，`compileSdk 36`
 - 无网络、无账号、无第三方 SDK（除用户指定的农历库）、无统计、无广告
@@ -273,6 +278,7 @@ adb install -r "<项目路径>/app/build/outputs/apk/release/app-release.apk"
 ## 已知限制
 
 - 已在 OnePlus 13（ColorOS 17，2K 屏）上完成实测，拖拽、回弹、置顶、分页和卡片排版都已验证；其他 ROM 的差异仍需自行确认。
+- 桌面开启卡片可能会出现一直转圈圈的情况，目前我还没查到是什么原因，但不影响正常使用
 - Material3 1.4 的标准 `DatePicker` 没有独立的“月网格”，这里用的是标准日期网格 + 年份选择 + 输入模式。
 - 海报用 Android Canvas 绘制，没有用 ComposeView 截图，避免把测量/绘制拉回主线程。
 - 农历库固定 1.7.4，未升级到 Lint 提示的 1.7.7。
