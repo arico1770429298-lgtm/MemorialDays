@@ -28,12 +28,23 @@ import androidx.glance.text.TextStyle
 import com.example.memorialdays.MainActivity
 import com.example.memorialdays.R
 import com.example.memorialdays.domain.DayStatus
+import kotlinx.coroutines.withTimeoutOrNull
 
 class SingleEventWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val snapshot = WidgetData.load(context)
-        provideContent {
-            SingleEventContent(snapshot)
+        // Never let a slow/blocked database keep the widget on its loading
+        // spinner: fall back to the empty/error card after five seconds.
+        val snapshot = withTimeoutOrNull(5_000L) {
+            WidgetData.load(context)
+        } ?: WidgetSnapshot(items = emptyList(), failed = true)
+        try {
+            provideContent {
+                SingleEventContent(snapshot)
+            }
+        } catch (t: Throwable) {
+            runCatching {
+                provideContent { WidgetEmpty(failed = true) }
+            }
         }
     }
 }

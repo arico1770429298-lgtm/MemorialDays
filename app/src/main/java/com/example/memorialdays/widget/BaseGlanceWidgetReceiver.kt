@@ -5,6 +5,7 @@ import android.appwidget.AppWidgetProvider
 import android.content.ComponentName
 import android.content.Context
 import android.os.Bundle
+import android.util.Log
 import androidx.glance.appwidget.GlanceAppWidget
 import androidx.glance.appwidget.GlanceAppWidgetManager
 import kotlinx.coroutines.CoroutineScope
@@ -83,8 +84,12 @@ abstract class BaseGlanceWidgetReceiver : AppWidgetProvider() {
                     appWidgetIds.forEach { appWidgetId ->
                         runCatching {
                             widget.update(appContext, manager.getGlanceIdBy(appWidgetId))
+                        }.onFailure {
+                            Log.e(TAG, "widget update failed (id=$appWidgetId)", it)
                         }
                     }
+                }.onFailure {
+                    Log.e(TAG, "widget update batch failed", it)
                 }
             } finally {
                 pending.finish()
@@ -95,5 +100,9 @@ abstract class BaseGlanceWidgetReceiver : AppWidgetProvider() {
     private fun ownedWidgetIds(context: Context): Set<Int> {
         val manager = AppWidgetManager.getInstance(context)
         return manager.getAppWidgetIds(ComponentName(context, this.javaClass)).toSet()
+    }
+
+    private companion object {
+        const val TAG = "MemorialWidget"
     }
 }

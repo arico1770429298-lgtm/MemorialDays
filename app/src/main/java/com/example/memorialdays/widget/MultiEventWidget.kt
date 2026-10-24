@@ -30,12 +30,21 @@ import com.example.memorialdays.MainActivity
 import com.example.memorialdays.R
 import com.example.memorialdays.domain.DayStatus
 import java.util.Locale
+import kotlinx.coroutines.withTimeoutOrNull
 
 class MultiEventWidget : GlanceAppWidget() {
     override suspend fun provideGlance(context: Context, id: GlanceId) {
-        val snapshot = WidgetData.load(context)
-        provideContent {
-            MultiEventContent(snapshot)
+        val snapshot = withTimeoutOrNull(5_000L) {
+            WidgetData.load(context)
+        } ?: WidgetSnapshot(items = emptyList(), failed = true)
+        try {
+            provideContent {
+                MultiEventContent(snapshot)
+            }
+        } catch (t: Throwable) {
+            runCatching {
+                provideContent { WidgetEmpty(failed = true) }
+            }
         }
     }
 }
