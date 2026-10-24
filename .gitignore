@@ -1,0 +1,28 @@
+# Gradle / build output
+.gradle/
+build/
+.kotlin/
+
+# IDE
+.idea/
+*.iml
+*.ipr
+*.iws
+
+# Local SDK path (machine specific)
+local.properties
+
+# Signing material — never commit keystore or passwords
+keystore.properties
+*.jks
+*.keystore
+app/release.jks
+
+# Native build
+.externalNativeBuild/
+.cxx/
+
+# OS / misc
+.DS_Store
+Thumbs.db
+captures/

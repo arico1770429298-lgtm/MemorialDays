@@ -1,0 +1,111 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">MemorialDays</string>
+    <string name="brand_name">MemorialDays</string>
+
+    <!-- Home -->
+    <string name="loading">正在整理…</string>
+    <string name="error_load_failed">暂时无法读取纪念日</string>
+    <string name="action_retry">重试</string>
+    <string name="empty_title">还没有纪念日</string>
+    <string name="empty_subtitle">记录那些值得被记住的日子</string>
+    <string name="empty_action">添加第一个日子</string>
+    <string name="status_remaining">还有</string>
+    <string name="status_past">已过</string>
+    <string name="status_today">就是今天</string>
+    <string name="status_born">已出生</string>
+    <string name="status_together">已相伴</string>
+    <string name="days_remaining_format">还有 %1$d 天</string>
+    <string name="days_past_format">已过 %1$d 天</string>
+    <string name="born_days_format">已出生 %1$d 天</string>
+    <string name="together_days_format">已相伴 %1$d 天</string>
+    <string name="next_birthday_format">距下次生日还有 %1$d 天</string>
+    <string name="next_anniversary_format">距下次纪念日还有 %1$d 天</string>
+    <string name="birthday_today">今天生日</string>
+    <string name="anniversary_today">今天纪念</string>
+    <string name="unit_day">天</string>
+    <string name="content_desc_add">添加纪念日</string>
+    <string name="content_desc_event_today">%1$s，就是今天</string>
+    <string name="content_desc_event_days">%1$s，%2$s %3$d 天</string>
+
+    <!-- Semantic event types -->
+    <string name="type_general">日子</string>
+    <string name="type_birthday">生日</string>
+    <string name="type_memorial">纪念</string>
+    <string name="type_anniversary">相识</string>
+
+    <!-- Lunar dates -->
+    <string name="lunar_date_format">农历%1$s月%2$s</string>
+    <string name="lunar_date_leap_format">农历闰%1$s月%2$s</string>
+    <string name="date_info_full_format">公历 %1$s · %2$s</string>
+    <string name="date_info_compact_format">%1$s · %2$s</string>
+    <string name="date_solar_format">公历 %1$s</string>
+
+    <!-- Editor -->
+    <string name="add_event">添加纪念日</string>
+    <string name="edit_event">编辑纪念日</string>
+    <string name="event_name">名称</string>
+    <string name="event_name_placeholder">例如：在一起的第一天</string>
+    <string name="event_date">日期</string>
+    <string name="event_note">备注（可选）</string>
+    <string name="event_note_placeholder">写下一句话</string>
+    <string name="event_color">卡片颜色</string>
+    <string name="event_color_code">颜色代码</string>
+    <string name="event_color_default">默认</string>
+    <string name="event_yearly">每年重复</string>
+    <string name="event_yearly_hint">公历事件每年按同一月日重复</string>
+    <string name="event_lunar">农历日期</string>
+    <string name="event_lunar_hint">按农历月日推算，闰月自动回退</string>
+    <string name="event_type_auto">将自动识别为：%1$s</string>
+    <string name="date_picker_headline">选择日期</string>
+    <string name="date_picker_input_headline">输入日期</string>
+    <string name="action_save">保存</string>
+    <string name="action_saving">保存中…</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_confirm">确定</string>
+    <string name="action_delete">删除</string>
+    <string name="action_edit">编辑</string>
+    <string name="action_share">分享海报</string>
+    <string name="action_pin">置顶</string>
+    <string name="action_unpin">取消置顶</string>
+    <string name="error_name_required">请输入名称</string>
+    <string name="error_date_invalid">请选择有效日期</string>
+    <string name="error_save_failed">保存失败，请稍后再试</string>
+    <string name="error_delete_failed">删除失败，请稍后再试</string>
+    <string name="delete_confirm_title">删除这个日子？</string>
+    <string name="delete_confirm_message">「%1$s」将从列表中移除，此操作无法撤销。</string>
+    <string name="snackbar_deleted">已删除「%1$s」</string>
+
+    <!-- Action sheet / backup / poster -->
+    <string name="backup_title">备份与恢复</string>
+    <string name="backup_description">通过系统文件选择器导出或导入 JSON。导入会覆盖当前全部纪念日，不需要存储权限。</string>
+    <string name="backup_export">导出备份</string>
+    <string name="backup_import">导入备份</string>
+    <string name="backup_exported">已导出 %1$d 个日子</string>
+    <string name="backup_imported">已导入 %1$d 个日子</string>
+    <string name="backup_failed">备份操作失败</string>
+    <string name="backup_empty">没有可导入的数据</string>
+    <string name="backup_export_file_name" translatable="false">memorialdays-backup.json</string>
+    <string name="poster_share_title">分享纪念日</string>
+    <string name="poster_failed">海报生成失败</string>
+    <string name="poster_no_app">没有可用的分享应用</string>
+
+
+    <!-- Widgets -->
+    <string name="widget_single_name">下一个日子</string>
+    <string name="widget_multi_name">纪念日列表</string>
+    <string name="widget_single_description">极简显示下一个纪念日</string>
+    <string name="widget_multi_description">同时查看多个纪念日</string>
+    <string name="widget_today">今天</string>
+    <string name="widget_past">已过</string>
+    <string name="widget_remaining">还有</string>
+    <string name="widget_days_format">%1$s %2$d 天</string>
+    <string name="widget_empty_title">还没有纪念日</string>
+    <string name="widget_empty_action">轻触打开应用添加</string>
+    <string name="widget_error_title">暂时无法读取</string>
+
+    <!-- Formatting (patterns are locale-independent on purpose) -->
+    <string name="date_meta_format">%1$s · %2$s</string>
+    <string name="pattern_month_day" translatable="false">M月d日</string>
+    <string name="char_count_format" translatable="false">%1$d/%2$d</string>
+</resources>

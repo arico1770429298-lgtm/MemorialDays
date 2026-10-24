@@ -1,0 +1,33 @@
+<?xml version="1.0" encoding="utf-8"?>
+<vector xmlns:android="http://schemas.android.com/apk/res/android"
+    android:width="108dp"
+    android:height="108dp"
+    android:viewportWidth="108"
+    android:viewportHeight="108">
+
+    <!-- A single continuous hairline circle, kept inside the 66dp safe zone. -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M54,31 A23,23 0 0,1 54,77 A23,23 0 0,1 54,31"
+        android:strokeColor="#F2EFE8"
+        android:strokeLineCap="round"
+        android:strokeWidth="2.2" />
+
+    <!-- Clock hands: twelve o'clock and roughly four o'clock. -->
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M54,54 L54,40"
+        android:strokeColor="#F2EFE8"
+        android:strokeLineCap="round"
+        android:strokeWidth="2.6" />
+    <path
+        android:fillColor="#00000000"
+        android:pathData="M54,54 L64,59"
+        android:strokeColor="#F2EFE8"
+        android:strokeLineCap="round"
+        android:strokeWidth="2.6" />
+
+    <path
+        android:fillColor="#F2EFE8"
+        android:pathData="M54,54 m-2.2,0 a2.2,2.2 0 1,0 4.4,0 a2.2,2.2 0 1,0 -4.4,0" />
+</vector>
