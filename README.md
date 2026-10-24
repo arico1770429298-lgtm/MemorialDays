@@ -47,10 +47,9 @@
        距下次生日还有 XX 天
 ```
 
-- 顶部居中：状态小字 + 自定义标题（中等字号，最多两行）
-- 中部居中：核心数字 + 小号“天”，数字物理尺寸约为卡片宽度的 30%，按 `BoxWithConstraints` 计算，并用 `fontScale` 修正，避免 2K 屏/大字体溢出
-- 底部居中：状态描述、日期、距下次事件；所有元素用 Spacer 分层，保持留白
-- 拖拽任意列表卡到第一位，它会在同一列表中变为 Hero Card；把 Hero 拖到后面会折叠回列表卡
+- 自上而下：状态小字、自定义标题（最多两行）、核心数字 + 小号“天”、日期（10sp 灰字）、距下次事件（主题色）
+- 数字物理尺寸约为卡片宽度的 30%，按 `BoxWithConstraints` 计算，并用 `fontScale` 修正，避免 2K 屏/大字体溢出
+- 置顶的卡片固定为 Hero Card，不参与拖拽；取消置顶后回落为列表卡
 - 生日示例：出生日 `1990.01.01`、今天 `2026.10.23` → 已出生 `13444` 天，距下次生日 `70` 天（单元测试覆盖）
 
 ## 项目结构
@@ -155,21 +154,23 @@ MemorialDays/
 ./gradlew assembleDebug          # debug APK
 ./gradlew testDebugUnitTest      # JVM 单元测试
 ./gradlew lintDebug              # Lint 报告
-./gradlew assembleRelease        # R8 + 资源压缩，未签名
-./gradlew installDebug           # 已连接设备时安装
+./gradlew assembleRelease        # R8 + 资源压缩 + release 签名
+./gradlew installRelease         # 已连接设备时安装正式版
 ```
 
-产物路径：
+产物：
 
-- Debug APK：`app/build/outputs/apk/debug/app-debug.apk`（约 17 MB）
-- Release APK（unsigned）：`app/build/outputs/apk/release/app-release-unsigned.apk`（约 1.8 MB）
+- Debug APK：`app/build/outputs/apk/debug/app-debug.apk`
+- 正式版 APK：`app/build/outputs/apk/release/app-release.apk`，约 1.8 MB
+
+`assembleRelease` 会从仓库外的 `keystore.properties` 读取签名信息，密钥库是 `app/release.jks`。两者都在 `.gitignore` 里，密码不会进入版本库；缺少 `keystore.properties` 时不会执行签名。
 
 Gradle wrapper 使用腾讯镜像并配置官方 SHA-256：
 `distributionSha256Sum=20f1b1176237254a6fc204d8434196fa11a4cfb387567519c61556e8710aed78`。
 
 ## 数据模型与迁移
 
-数据库版本 **3**。`EventEntity`：
+数据库版本 **5**。`EventEntity`：
 
 ```kotlin
 id: Long
@@ -181,18 +182,11 @@ isYearly: Boolean         // 默认 false
 eventType: String         // 默认 "GENERAL"
 isLunar: Boolean          // 默认 false
 sortOrder: Int            // 默认 0，拖拽排序后写入
+isPinned: Boolean         // v4 新增，置顶
+color: Int                // v5 新增，卡片颜色（0 表示无着色）
 ```
 
-`MIGRATION_2_3` 的具体 SQL：
-
-```sql
-ALTER TABLE events ADD COLUMN isYearly INTEGER NOT NULL DEFAULT 0;
-ALTER TABLE events ADD COLUMN eventType TEXT NOT NULL DEFAULT 'GENERAL';
-ALTER TABLE events ADD COLUMN isLunar INTEGER NOT NULL DEFAULT 0;
-ALTER TABLE events ADD COLUMN sortOrder INTEGER NOT NULL DEFAULT 0;
-```
-
-`MIGRATION_1_2` 仍保留（添加 `note`）。`addMigrations(MIGRATION_1_2, MIGRATION_2_3)` 显式注册，**没有** `fallbackToDestructiveMigration()`。
+迁移链为 `MIGRATION_1_2`（补 `note`）→ `MIGRATION_2_3`（补 `isYearly / eventType / isLunar / sortOrder`）→ `MIGRATION_3_4`（补 `isPinned`）→ `MIGRATION_4_5`（补 `color`），全部显式注册，没有 `fallbackToDestructiveMigration()`。
 
 ## 农历推算
 
@@ -210,19 +204,19 @@ ALTER TABLE events ADD COLUMN sortOrder INTEGER NOT NULL DEFAULT 0;
 
 ## 交互
 
-- 点击卡片：编辑
-- 长按 300ms（通过 `LocalViewConfiguration` 覆盖 `longPressTimeoutMillis`）：浮起并触发触觉
-- 拖动超过 `touchSlop`：拖拽排序；坐标交换触发 `SegmentTick`
-- 拖到索引 0：该项自动展开为 Hero Card；Hero 拖到后面折叠为列表卡
-- 原地松手：BottomSheet（编辑 / 分享海报 / 删除）
-- 长按顶部 `MEMORIALDAYS`：备份 BottomSheet
-- 保存 / 删除 / 备份：300ms 节流；拖拽排序松手立即批量写库
-- 触觉：`Build.VERSION`、`View.isHapticFeedbackEnabled`、`Vibrator.hasVibrator()` 三重判断，200ms 节流，使用 `View.performHapticFeedback`（不需要 `VIBRATE` 权限）
+- 轻点卡片：打开编辑（修改、颜色、保存）
+- 长按原地松手：弹出选项（置顶 / 取消置顶、分享海报、删除）
+- 长按后上下拖动：非置顶卡片排序；置顶卡片固定，不参与拖动
+- 拖到置顶区上方或列表末尾时，按松手速度回落或回弹，都带弹簧动画
+- 列表每页 5 个，左右滑动翻页，滑动时底部出现页码小点
+- 长按顶部 `MEMORIALDAYS`：备份面板
+- 保存 / 删除 / 备份有 300ms 节流；排序松手后批量写库
+- 触觉：拖拽换位、卡片碰撞和长按都会触发反馈，使用 `View.performHapticFeedback`，不需要 `VIBRATE` 权限
 
 ## 备份与海报
 
 - 备份：`ActivityResultContracts.CreateDocument` / `OpenDocument`（SAF），JSON 格式，无存储权限。导入会覆盖当前全部纪念日。
-- 海报：`PosterRenderer` 在 `Dispatchers.IO` 用 Android Canvas 绘制 1080×1440 PNG。没有使用 ComposeView 截图，因为 ComposeView 的测量/绘制必须回到主线程，会违反“海报渲染不阻塞主线程”的硬约束。
+- 海报：`PosterRenderer` 在 `Dispatchers.IO` 用 Android Canvas 绘制 1080×1440 PNG。没有使用 ComposeView 截图，因为那会把测量和绘制拉回主线程。
 - 文件：`cacheDir/posters/memorial-*.png`，通过 `FileProvider` 分享。
 - 清理：分享启动后 60 秒删除当前文件；每次生成前清理超过 24 小时的旧文件；分享失败立即删除。
 - `FileProvider`：`android:exported="false"`、`android:grantUriPermissions="true"`，meta-data 使用兼容旧版的 `android.support.FILE_PROVIDER_PATHS`。
@@ -242,71 +236,45 @@ ALTER TABLE events ADD COLUMN sortOrder INTEGER NOT NULL DEFAULT 0;
 ## 侧载安装
 
 ```bash
-adb install -r "<项目路径>/app/build/outputs/apk/debug/app-debug.apk"
+adb install -r "<项目路径>/app/build/outputs/apk/release/app-release.apk"
 ```
 
-或把 APK 传到手机点击安装。部分国产 ROM（如 ColorOS / MIUI）首次安装需：设置 → 应用 → 特殊应用权限 → 安装未知应用 → 允许文件管理器/浏览器。
+也可以把 APK 传到手机点击安装。部分国产 ROM（如 ColorOS / MIUI）首次安装需要到「设置 → 应用 → 特殊应用权限 → 安装未知应用」里放行文件管理器或浏览器。
 
 小组件：长按桌面空白处 → 小组件 / 卡片 → MemorialDays → `下一个日子`（2×2）或 `纪念日列表`（4×2）。没有调用 `requestPinAppWidget`。
 
-## 安全与轻量自查表
+## 安全与隐私
 
-### A. 安全与隐私
+- Manifest 没有声明任何权限，APK 里只有 AndroidX 自动生成的签名级权限。
+- 关闭了备份和明文流量；`data_extraction_rules` 排除云备份与设备迁移。
+- 没有硬编码密钥；签名信息放在 gitignore 的 `keystore.properties`。
+- 小组件 receiver 会把系统传入的 ID 和本应用实际拥有的 ID 取交集，拒绝伪造广播。
+- FileProvider 不导出，只授予临时读权限；海报只写 `cacheDir`，用完清理。
+- 导入备份会校验格式、标题、日期范围和备注长度，坏数据跳过。
 
-| 编号 | 实现与证据 |
-| --- | --- |
-| A1 | Manifest 无任何 `<uses-permission>`；APK 实际权限仅 `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION`（AndroidX 自动生成的 signature 权限）。无 INTERNET、存储、通讯录、定位、VIBRATE。SAF 不申请存储权限；海报使用 `cacheDir` + FileProvider。 |
-| A2 | `allowBackup=false`、`fullBackupContent=false`、`usesCleartextTraffic=false`；`data_extraction_rules.xml` 排除 cloud-backup / device-transfer。 |
-| A3 | 无硬编码密钥；全部依赖固定版本；无 Hilt/Retrofit；`release { isMinifyEnabled = true; isShrinkResources = true }`，R8 构建成功。农历库为本地 Java 库，无网络访问。 |
+## 性能与耗电
 
-### B. 性能、防卡死与耗电
-
-| 编号 | 实现与证据 |
-| --- | --- |
-| B1 | `viewModelScope` / Application 级 `SupervisorJob` / `rememberCoroutineScope`；非 UI 层统一 `applicationContext`；`collectAsStateWithLifecycle`，无手动 `registerReceiver`；`LaunchedEffect` 随组合取消。 |
-| B2 | 农历推算在 `withContext(Dispatchers.Default)`；Room suspend/Flow + `Dispatchers.IO`；海报在 `Dispatchers.IO`；Composable 内无数据库调用。 |
-| B3 | 小组件 `updatePeriodMillis=86400000`；自定义 `AppWidgetProvider` + `goAsync`；无 Service、无 AlarmManager、无 WorkManager、无保活；天数只在状态构建或小组件更新时计算。 |
-
-### C. 数据与日期正确性
-
-| 编号 | 实现与证据 |
-| --- | --- |
-| C1 | 天数使用 `ChronoUnit.DAYS.between`；生日/相识事件的“已出生/已相伴”同样使用 `ChronoUnit.DAYS.between(event.date, today)`；无毫秒差；`PAST/TODAY/FUTURE` 明确区分。 |
-| C2 | 数据库 v3 + `MIGRATION_2_3` 四条 ALTER；无 destructive migration。 |
-| C3 | 无 `!!`；标题 1–40、备注 0–80、日期 1900–2100 双重校验；列表标题 `maxLines=2` + `TextOverflow.Clip`（按新规范不省略），其他可变文本 `maxLines` + Ellipsis/Clip；空/加载/错误状态完整；海报/备份异常均捕获；Bad JSON/坏日期跳过。 |
-
-### D. 适配与字符集
-
-| 编号 | 实现与证据 |
-| --- | --- |
-| D1 | 2×2：110dp + targetCell 2×2；4×2：250dp + targetCell 4×2；旧系统回退 minWidth/minHeight；标准 AppWidgetProvider；无 pin。 |
-| D2 | `-Dfile.encoding=UTF-8`；全部中文在 `strings.xml`；Kotlin 源码无中文字符串。 |
-
-### 额外安全措施
-
-- Widget receiver 对传入的 `appWidgetIds` 与本应用实际拥有的 ID 取交集，拒绝第三方伪造广播。
-- `FileProvider` 不导出，只授予临时读权限。
-- 备份 JSON 导入时校验 format、标题、日期范围、备注长度；空数据抛 `EmptyBackupException` 并提示。
-- 海报文件只存在 cacheDir，按时间清理，避免 OOM/长期残留。
+- 农历换算放在 `Dispatchers.Default`，数据库和海报放在 `Dispatchers.IO`，Composable 里不直接查库。
+- 协程跟随 `viewModelScope` / 应用级 `SupervisorJob` / `rememberCoroutineScope` 取消。
+- 小组件用自定义 `AppWidgetProvider` + `goAsync`，没有 WorkManager、Service、AlarmManager，也不保活。
+- 天数只在构建列表状态或刷新小组件时计算。
 
 ## 验证结果
 
 | 检查 | 结果 |
 | --- | --- |
 | `./gradlew assembleDebug` | BUILD SUCCESSFUL |
-| `./gradlew testDebugUnitTest` | 16/16 通过，0 failures / 0 errors（DayMath 7 + 农历/生日示例 5 + 类型 4） |
-| `./gradlew lintDebug` | 0 errors，2 warnings（lunar 1.7.7 可升级提示；mipmap-anydpi-v26 在 minSdk 26 下多余），1 hint |
-| `./gradlew assembleRelease` | BUILD SUCCESSFUL；R8 + 资源压缩；约 1.8 MB |
+| `./gradlew testDebugUnitTest` | 16/16 通过 |
+| `./gradlew lintDebug` | 0 errors，2 warnings（lunar 版本提示、mipmap 多余） |
+| `./gradlew assembleRelease` | BUILD SUCCESSFUL；签名后的 `app-release.apk`，约 1.8 MB |
+| 真机测试 | OnePlus 13 / ColorOS 17 / 2K 屏，拖拽、回弹、置顶、分页和卡片排版均通过 |
 | APK 权限 | 仅签名级 `DYNAMIC_RECEIVER_NOT_EXPORTED_PERMISSION` |
-| Debug APK | 约 17 MB，`app/build/outputs/apk/debug/app-debug.apk` |
-| 依赖树 | `cn.6tail:lunar:1.7.4`；无 `androidx.work` |
 
 ## 已知限制
 
-- 当前环境没有 Android 真机/模拟器，未进行运行时交互与截图级视觉验证；拖拽与点击/滚动的手势冲突、BottomSheet、SAF 分享链路需要在真机（ColorOS / MIUI 等）上实测。
-- Material3 1.4 的标准 `DatePicker` 没有独立的“月网格”；本次恢复了标准日期网格 + 年份选择 + `showModeToggle` 输入模式，并把顶部 headline 改为 `FontWeight.Light`。没有编造不存在的三级网格 API。
-- 海报使用 Android Canvas 而非 Compose 截图；原因是 ComposeView 必须在主线程测量/绘制，与“海报渲染在 IO”冲突。视觉语言仍复用主题色、字体层级和状态文案。
-- 农历库固定 1.7.4；Lint 提示 1.7.7 可升级，未偏离用户指定版本。
+- 已在 OnePlus 13（ColorOS 17，2K 屏）上完成实测，拖拽、回弹、置顶、分页和卡片排版都已验证；其他 ROM 的差异仍需自行确认。
+- Material3 1.4 的标准 `DatePicker` 没有独立的“月网格”，这里用的是标准日期网格 + 年份选择 + 输入模式。
+- 海报用 Android Canvas 绘制，没有用 ComposeView 截图，避免把测量/绘制拉回主线程。
+- 农历库固定 1.7.4，未升级到 Lint 提示的 1.7.7。
 - Room 为明文数据库（应用私有目录 + 禁止备份），未引入 SQLCipher。
-- Release APK 未签名，侧载请使用 debug APK。
-- “已出生 / 已相伴”由 `EventType.BIRTHDAY / ANNIVERSARY` 驱动；标题关键词自动识别，若标题被识别为“相识”则显示“已相伴”，需要“已出生”时请使用生日/出生类标题（例如“示例事件”）。
+- “已出生 / 已相伴”由 `EventType.BIRTHDAY / ANNIVERSARY` 驱动，标题关键词自动识别；需要“已出生”时用生日/出生类标题（例如“示例事件”）。
