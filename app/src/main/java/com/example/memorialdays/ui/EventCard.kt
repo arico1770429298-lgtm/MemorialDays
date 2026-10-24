@@ -26,6 +26,7 @@ import androidx.compose.ui.graphics.lerp
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -46,7 +47,8 @@ fun EventCard(
 ) {
     val isDark = isSystemInDarkTheme()
     val shape = RoundedCornerShape(24.dp)
-    val dateInfo = stringResource(R.string.date_solar_format, item.baseSolarLabel)
+    val dateInfo = item.baseDateInfoFull()
+    val status = item.listStatus()
     val unit = stringResource(R.string.unit_day)
     val surface = MaterialTheme.colorScheme.surface
     val tint = if (item.event.color != 0) {
@@ -98,14 +100,26 @@ fun EventCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = item.event.title,
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis,
-                    modifier = Modifier.fillMaxWidth()
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = status,
+                        style = MaterialTheme.typography.labelSmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text(
+                        text = item.event.title,
+                        style = MaterialTheme.typography.titleMedium.copy(
+                            fontWeight = FontWeight.SemiBold
+                        ),
+                        color = MaterialTheme.colorScheme.onSurface,
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
                 Spacer(Modifier.height(6.dp))
                 Text(
                     text = dateInfo,

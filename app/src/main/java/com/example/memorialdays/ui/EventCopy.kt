@@ -29,7 +29,7 @@ fun EventUi.baseLunarLabel(): String = stringResource(
     baseLunarDayLabel
 )
 
-/** Full date line for list cards: 公历 2007.01.02 · 农历冬月十四 */
+/** Full date line for list cards: 公历 1990.01.01 · 农历腊月初八 */
 @Composable
 fun EventUi.baseDateInfoFull(): String = stringResource(
     R.string.date_info_full_format,
@@ -37,7 +37,7 @@ fun EventUi.baseDateInfoFull(): String = stringResource(
     baseLunarLabel()
 )
 
-/** Compact date line for the hero card: 2007.01.02 · 农历冬月十四 */
+/** Compact date line for the hero card: 1990.01.01 · 农历腊月初八 */
 @Composable
 fun EventUi.baseDateInfoCompact(): String = stringResource(
     R.string.date_info_compact_format,
